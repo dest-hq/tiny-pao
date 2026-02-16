@@ -1,0 +1,3 @@
+[workspace]
+members = ["tiny_pao", "examples"]
+resolver = "2"

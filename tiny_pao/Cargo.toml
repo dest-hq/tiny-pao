@@ -1,0 +1,8 @@
+[package]
+name = "tiny-pao"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+raw-window-handle = "0.6.2"
+softbuffer = "0.4.8"
