@@ -1,8 +1,8 @@
 # tiny_pao
 
-A simple CPU renderer for Rust.
+Software renderer written in Rust
 
-**Work in Progress** - Currently just renders solid colors
+**WIP** - Currently just renders solid colors
 
 ## Features
 - [x] Window integration via raw-window-handle
