@@ -25,7 +25,7 @@ jobs:
         run: cargo bench --release | tee bench_results.txt
 
       - name: Upload bench results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: bench-results
           path: bench_results.txt
