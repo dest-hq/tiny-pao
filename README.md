@@ -14,3 +14,5 @@ Software renderer written in Rust
 
 ## Usage
 See `examples/src/softbuffer.rs`
+
+t
