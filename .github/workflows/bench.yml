@@ -1,37 +1,33 @@
-
-name: Commit Bench Results
+name: Bench Commit
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   bench:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref }}
+          persist-credentials: false
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          override: true
 
       - name: Run benchmarks
-        run: |
-          cargo bench --release | tee bench_results.txt
+        run: cargo bench --release | tee bench_results.txt
 
       - name: Commit bench results
-        uses: step-security/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update bench_results"
-          file_pattern: bench_results.txt
-          branch: ${{ github.ref_name }}
+          file_pattern: "bench_results.txt"
