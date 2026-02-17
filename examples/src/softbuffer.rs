@@ -1,5 +1,6 @@
-use std::sync::Arc;
+use std::{num::NonZeroU32, sync::Arc};
 
+use softbuffer::{Context, Surface};
 use tiny_pao::{Canvas, Color, Size};
 use winit::{
     application::ApplicationHandler,
@@ -16,12 +17,13 @@ fn main() {
 #[derive(Default)]
 struct App {
     window: Option<Arc<Window>>,
-    canvas: Option<Canvas<Window>>,
+    canvas: Option<Canvas>,
+    surface: Option<Surface<Arc<Window>, Arc<Window>>>,
 }
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
-        if self.canvas.is_none() && self.window.is_none() {
+        if self.canvas.is_none() && self.window.is_none() && self.surface.is_none() {
             let window_attributes =
                 WindowAttributes::default().with_inner_size(WinitSize::Physical(PhysicalSize {
                     width: 600,
@@ -34,10 +36,15 @@ impl ApplicationHandler for App {
                     height: 600,
                 },
                 Color::rgb(255, 255, 255),
-                window.clone(),
             );
+            let surface = {
+                let context = Context::new(window.clone()).unwrap();
+                Some(Surface::new(&context, window.clone()).unwrap())
+            };
+
             window.request_redraw();
             self.window = Some(window);
+            self.surface = surface;
             self.canvas = Some(canvas);
         }
     }
@@ -51,19 +58,26 @@ impl ApplicationHandler for App {
         match event {
             winit::event::WindowEvent::CloseRequested => event_loop.exit(),
             winit::event::WindowEvent::RedrawRequested => {
-                if let Some(canvas) = &mut self.canvas {
+                if let (Some(surface), Some(canvas)) = (&mut self.surface, &mut self.canvas) {
                     canvas.clear(Color::rgb(255, 255, 255));
-                    canvas.present().unwrap();
+                    let mut buffer = surface.buffer_mut().unwrap();
+                    buffer.copy_from_slice(canvas.buffer());
+                    buffer.present().unwrap();
                 }
             }
             winit::event::WindowEvent::Resized(size) => {
-                if let (Some(window), Some(canvas)) = (self.window.as_ref(), &mut self.canvas) {
-                    canvas
-                        .resize(Size {
-                            width: size.width,
-                            height: size.height,
-                        })
-                        .unwrap();
+                if let (Some(window), Some(canvas), Some(surface)) =
+                    (self.window.as_ref(), &mut self.canvas, &mut self.surface)
+                {
+                    canvas.resize(Size {
+                        width: size.width,
+                        height: size.height,
+                    });
+
+                    let _ = surface.resize(
+                        NonZeroU32::new(size.width).unwrap(),
+                        NonZeroU32::new(size.height).unwrap(),
+                    );
 
                     window.request_redraw();
                 }

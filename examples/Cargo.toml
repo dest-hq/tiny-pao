@@ -4,9 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "white_window"
-path = "src/white_window.rs"
+name = "softbuffer"
+path = "src/softbuffer.rs"
+
+[[bin]]
+name = "image"
+path = "src/image.rs"
 
 [dependencies]
+image = "0.25.9"
+softbuffer = "0.4.8"
 tiny-pao = { path = "../tiny_pao" }
 winit = "0.30.12"

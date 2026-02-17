@@ -5,4 +5,3 @@ edition = "2024"
 
 [dependencies]
 raw-window-handle = "0.6.2"
-softbuffer = "0.4.8"

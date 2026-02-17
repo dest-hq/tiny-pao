@@ -1,38 +1,20 @@
-use std::{num::NonZeroU32, sync::Arc};
-
-use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
-use softbuffer::{Context, SoftBufferError, Surface};
-
 use crate::{Color, Position, Size};
 
-pub struct Canvas<B>
-where
-    B: HasWindowHandle + HasDisplayHandle,
-{
-    width: std::num::NonZero<u32>,
-    height: std::num::NonZero<u32>,
+pub struct Canvas {
+    width: u32,
+    height: u32,
     buffer: Vec<u32>,
-    surface: Option<Surface<Arc<B>, Arc<B>>>,
     color: Color,
 }
 
-impl<B> Canvas<B>
-where
-    B: HasWindowHandle + HasDisplayHandle,
-{
+impl Canvas {
     /// Create new canvas
-    pub fn new(window_size: Size, color: Color, window: Arc<B>) -> Self {
-        let surface = {
-            let context = Context::new(window.clone()).unwrap();
-            Some(Surface::new(&context, window).unwrap())
-        };
-
+    pub fn new(size: Size, color: Color) -> Self {
         let u32_color = Color::to_argb(color.a, color.r, color.g, color.b);
         Self {
-            width: NonZeroU32::new(window_size.width).unwrap(),
-            height: NonZeroU32::new(window_size.height).unwrap(),
-            buffer: vec![u32_color; (window_size.width * window_size.height) as usize],
-            surface: surface,
+            width: size.width,
+            height: size.height,
+            buffer: vec![u32_color; (size.width * size.height) as usize],
             color: color,
         }
     }
@@ -117,31 +99,22 @@ where
     }
 
     /// Resize the canvas
-    pub fn resize(&mut self, size: Size) -> Result<(), SoftBufferError> {
-        if let Some(surface) = &mut self.surface {
-            let non_width = NonZeroU32::new(size.width).unwrap();
-            let non_height = NonZeroU32::new(size.height).unwrap();
+    pub fn resize(&mut self, size: Size) {
+        self.width = size.width;
+        self.height = size.height;
 
-            surface.resize(non_width, non_height)?;
-
-            self.width = non_width;
-            self.height = non_height;
-
-            let u32_color = Color::to_argb(self.color.a, self.color.r, self.color.g, self.color.b);
-            self.buffer = vec![u32_color; (self.width.get() * self.height.get()) as usize];
-        }
-
-        Ok(())
+        let u32_color = Color::to_argb(self.color.a, self.color.r, self.color.g, self.color.b);
+        self.buffer = vec![u32_color; (self.width * self.height) as usize];
     }
 
     pub fn draw_pixel(&mut self, pixel: Position, color: Color) {
-        if pixel.x >= self.width.get() || pixel.y >= self.height.get() {
+        if pixel.x >= self.width || pixel.y >= self.height {
             return; // prevent out-of-bounds
         }
 
         let u32_color = Color::to_argb(color.a, color.r, color.g, color.b);
 
-        let index = (pixel.y * self.width.get() + pixel.x) as usize;
+        let index = (pixel.y * self.width + pixel.x) as usize;
 
         self.buffer[index] = u32_color;
     }
@@ -149,17 +122,5 @@ where
     /// Give the pixels
     pub fn buffer(&self) -> &[u32] {
         &self.buffer
-    }
-
-    /// Draw
-    pub fn present(&mut self) -> Result<(), SoftBufferError> {
-        if let Some(surface) = &mut self.surface {
-            let mut buffer = surface.buffer_mut()?;
-            buffer.copy_from_slice(&self.buffer);
-            buffer.present()?;
-
-            return Ok(());
-        }
-        Err(SoftBufferError::IncompleteDisplayHandle)
     }
 }
