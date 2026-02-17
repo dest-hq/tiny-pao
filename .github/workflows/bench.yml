@@ -1,0 +1,31 @@
+name: Bench PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Run benchmarks
+        run: cargo bench --release | tee bench_results.txt
+
+      - name: Upload bench results
+        uses: actions/upload-artifact@v3
+        with:
+          name: bench-results
+          path: bench_results.txt
