@@ -10,7 +10,7 @@ Software renderer written in Rust
 - [x] Draw rectangles
 - [x] Draw circles
 - [ ] Anti-aliasing
-- [ ] Text rendering
+- [x] Text rendering (Limited)
 
 ## Usage
-See `examples/src/softbuffer.rs`
+See `examples/src/text_render.rs`
